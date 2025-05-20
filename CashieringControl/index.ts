@@ -4,6 +4,8 @@ import { createRoot, Root } from "react-dom/client";
 import { MainLayout } from "./components/MainLayout";
 import PowerAppsIntegrationService from "./integrations/PowerAppsIntegrationService";
 import { IOpportunity } from "./interfaces/IOpportunity";
+import { ICart } from "./interfaces/ICart";
+import { ICartItem } from "./interfaces/ICartItem";
 
 // Simulated consignment data (replace with actual data fetching in a real PCF control)
 const mockConsignments: any[] = [
@@ -120,18 +122,7 @@ export class CashieringControl implements ComponentFramework.StandardControl<IIn
 
     // Initialize the PowerAppsIntegrationService
     this.service = new PowerAppsIntegrationService(context);
-    const accountId = (context.mode as any).contextInfo?.entityId;
-    const opportunities: IOpportunity[]  = await this.service.fetchOpportunities(accountId);
-    opportunities.map(async (opportunity: IOpportunity) => {
-      const invoices = await this.service?.fetchInvoices(opportunity.opportunityId);
-      opportunity.invoices = invoices;
-    });
-    console.log("Opportunities with invoices:", opportunities);
-    this.consignments = mockConsignments;
-    this.totals = mockTotals;
-
-    // Initial render
-    this.renderControl();
+    
   }
 
   private renderControl(): void {
@@ -142,10 +133,30 @@ export class CashieringControl implements ComponentFramework.StandardControl<IIn
     }
   }
 
-  public updateView(context: ComponentFramework.Context<IInputs>): void {
+  public async updateView(context: ComponentFramework.Context<IInputs>): Promise<void> {
     // Re-initialize the service with the updated context
     this.service = new PowerAppsIntegrationService(context);
 
+    const accountId = (context.mode as any).contextInfo?.entityId;
+    const opportunities: IOpportunity[]  = await this.service.fetchOpportunities(accountId);
+    opportunities.map(async (opportunity: IOpportunity) => {
+      const invoices = await this.service?.fetchInvoices(opportunity.opportunityId);
+      opportunity.invoices = invoices;
+    });
+    console.log("Opportunities with invoices:", opportunities);
+
+    const cart: ICart | null = await this.service?.fetchCart(accountId);
+    if(cart !== null){
+      const cartItems :ICartItem[] = await this.service?.fetchCartItems(cart.bjac_cartId);
+      cart.cartItems = cartItems;
+    }
+    console.log("Cart:", cart);
+   
+    this.consignments = mockConsignments;
+    this.totals = mockTotals;
+
+    // Initial render
+    this.renderControl();
     // Fetch updated data (simulated for now; in a real PCF control, use this.service to fetch data)
     this.consignments = mockConsignments;
     this.totals = mockTotals;
