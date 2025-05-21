@@ -1,5 +1,25 @@
 import * as React from "react";
-import { DetailsList, IColumn, Stack, Text, PrimaryButton, IDetailsListStyles, Image, Label, DefaultButton, Selection, SelectionMode, IObjectWithKey, Panel, PanelType, Pivot, PivotItem, TextField, Dropdown, IDropdownOption } from "@fluentui/react";
+import {
+  DetailsList,
+  IColumn,
+  Stack,
+  Text,
+  PrimaryButton,
+  IDetailsListStyles,
+  Image,
+  Label,
+  DefaultButton,
+  Selection,
+  SelectionMode,
+  IObjectWithKey,
+  Panel,
+  PanelType,
+  Pivot,
+  PivotItem,
+  TextField,
+  Dropdown,
+  IDropdownOption,
+} from "@fluentui/react";
 import { stackTokens } from "../styles";
 import { IVehicle } from "../interfaces/IVehicle";
 
@@ -7,7 +27,7 @@ interface VehicleListProps {
   sortOption: string;
   filterOption: string;
   pivotKey: string;
-  searchQuery: string; // Add searchQuery prop
+  searchQuery: string;
   initialItems: IVehicle[];
   totals: any;
 }
@@ -47,7 +67,14 @@ const detailsListStyles: Partial<IDetailsListStyles> = {
   headerWrapper: { display: "none" }, // Hide the column headers
 };
 
-export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOption, pivotKey, searchQuery, initialItems, totals }) => {
+export const VehicleList: React.FC<VehicleListProps> = ({
+  sortOption,
+  filterOption,
+  pivotKey,
+  searchQuery,
+  initialItems,
+  totals,
+}) => {
   const [selectedCount, setSelectedCount] = React.useState(0);
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [isPanelOpen, setIsPanelOpen] = React.useState(false);
@@ -73,12 +100,24 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
 
   // Categorize consignments by status and type
   const categorizedItems = React.useMemo(() => {
-    const boughtVehicles = initialItems.filter((item) => item.consignmentStatus === "Bought" && item.type === "Vehicle");
-    const boughtAutomobilia = initialItems.filter((item) => item.consignmentStatus === "Bought" && item.type === "Automobilia");
-    const soldVehicles = initialItems.filter((item) => item.consignmentStatus === "Sold" && item.type === "Vehicle");
-    const unsoldVehicles = initialItems.filter((item) => item.consignmentStatus === "Unsold" && item.type === "Vehicle");
-    const soldAutomobilia = initialItems.filter((item) => item.consignmentStatus === "Sold" && item.type === "Automobilia");
-    const unsoldAutomobilia = initialItems.filter((item) => item.consignmentStatus === "Unsold" && item.type === "Automobilia");
+    const boughtVehicles = initialItems.filter(
+      (item) => item.consignmentStatus === "Bought" && item.type === "Vehicle"
+    );
+    const boughtAutomobilia = initialItems.filter(
+      (item) => item.consignmentStatus === "Bought" && item.type === "Automobilia"
+    );
+    const soldVehicles = initialItems.filter(
+      (item) => item.consignmentStatus === "Sold" && item.type === "Vehicle"
+    );
+    const unsoldVehicles = initialItems.filter(
+      (item) => item.consignmentStatus === "Unsold" && item.type === "Vehicle"
+    );
+    const soldAutomobilia = initialItems.filter(
+      (item) => item.consignmentStatus === "Sold" && item.type === "Automobilia"
+    );
+    const unsoldAutomobilia = initialItems.filter(
+      (item) => item.consignmentStatus === "Unsold" && item.type === "Automobilia"
+    );
 
     return {
       boughtVehicles,
@@ -114,7 +153,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
 
   // Apply search filtering
   const searchedItems = React.useMemo(() => {
-    if (!searchQuery) return pivotItems; // If no search query, return all items
+    if (!searchQuery) return pivotItems;
     const query = searchQuery.toLowerCase();
     return pivotItems.filter((item) =>
       item.name.toLowerCase().includes(query) || item.lot.toLowerCase().includes(query)
@@ -150,7 +189,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
     } else if (sortOption === "nameAsc") {
       sorted.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortOption === "nameDesc") {
-      sorted.sort((a, b) => b.name.localeCompare(a.name));
+      sorted.sort((a, b) => b.name.localeCompare(b.name));
     }
     return sorted;
   }, [sortOption, filteredItems]);
@@ -216,7 +255,12 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                 >
                   {/* Image */}
                   <Stack.Item>
-                    <Image src={item.image} width={150} height={90} styles={{ root: { borderRadius: 4 } }} />
+                    <Image
+                      src={item.image}
+                      width={150}
+                      height={90}
+                      styles={{ root: { borderRadius: 4 } }}
+                    />
                   </Stack.Item>
 
                   {/* Main Content */}
@@ -251,7 +295,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                           >
                             {item.status}
                           </Text>
-                          <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                          <Text
+                            variant="small"
+                            styles={{ root: { color: "#666", marginTop: 4 } }}
+                          >
                             Current Status
                           </Text>
                         </Stack>
@@ -270,19 +317,28 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                           >
                             {item.releaseStatus}
                           </Text>
-                          <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                          <Text
+                            variant="small"
+                            styles={{ root: { color: "#666", marginTop: 4 } }}
+                          >
                             Release Status
                           </Text>
                         </Stack>
                         <Stack>
                           <Text variant="medium">{item.hammerPrice}</Text>
-                          <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                          <Text
+                            variant="small"
+                            styles={{ root: { color: "#666", marginTop: 4 } }}
+                          >
                             Hammer Price
                           </Text>
                         </Stack>
                         <Stack>
                           <Text variant="medium">{item.taxesFees}</Text>
-                          <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                          <Text
+                            variant="small"
+                            styles={{ root: { color: "#666", marginTop: 4 } }}
+                          >
                             Taxes & Fees
                           </Text>
                         </Stack>
@@ -324,7 +380,9 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                         }}
                         styles={{
                           root: {
-                            border: isSelected ? "1px solid #1890ff !important" : "none !important",
+                            border: isSelected
+                              ? "1px solid #1890ff !important"
+                              : "none !important",
                             borderRadius: 4,
                             height: 32,
                             fontSize: 14,
@@ -333,10 +391,14 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                             outline: "none",
                           },
                           rootHovered: {
-                            border: isSelected ? "1px solid #1890ff !important" : "1px solid #d9d9d9 !important",
+                            border: isSelected
+                              ? "1px solid #1890ff !important"
+                              : "1px solid #d9d9d9 !important",
                           },
                           rootFocused: {
-                            border: isSelected ? "1px solid #1890ff !important" : "1px solid #d9d9d9 !important",
+                            border: isSelected
+                              ? "1px solid #1890ff !important"
+                              : "1px solid #d9d9d9 !important",
                             outline: "none",
                           },
                         }}
@@ -431,7 +493,12 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                     }}
                   >
                     <Stack.Item>
-                      <Image src={vehicle.image} width={150} height={90} styles={{ root: { borderRadius: 4 } }} />
+                      <Image
+                        src={vehicle.image}
+                        width={150}
+                        height={90}
+                        styles={{ root: { borderRadius: 4 } }}
+                      />
                     </Stack.Item>
                     <Stack.Item grow>
                       <Stack tokens={{ childrenGap: 8 }}>
@@ -444,7 +511,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                           <Text variant="small" styles={{ root: { color: "#666" } }}>
                             Lot#: {vehicle.lot}
                           </Text>
-                          <Text variant="mediumPlus" styles={{ root: { fontWeight: "bold" } }}>
+                          <Text
+                            variant="mediumPlus"
+                            styles={{ root: { fontWeight: "bold" } }}
+                          >
                             {vehicle.name}
                           </Text>
                         </Stack>
@@ -464,7 +534,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                             >
                               {vehicle.status}
                             </Text>
-                            <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                            <Text
+                              variant="small"
+                              styles={{ root: { color: "#666", marginTop: 4 } }}
+                            >
                               Current Status
                             </Text>
                           </Stack>
@@ -483,19 +556,28 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                             >
                               {vehicle.releaseStatus}
                             </Text>
-                            <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                            <Text
+                              variant="small"
+                              styles={{ root: { color: "#666", marginTop: 4 } }}
+                            >
                               Release Status
                             </Text>
                           </Stack>
                           <Stack>
                             <Text variant="medium">{vehicle.hammerPrice}</Text>
-                            <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                            <Text
+                              variant="small"
+                              styles={{ root: { color: "#666", marginTop: 4 } }}
+                            >
                               Hammer Price
                             </Text>
                           </Stack>
                           <Stack>
                             <Text variant="medium">{vehicle.taxesFees}</Text>
-                            <Text variant="small" styles={{ root: { color: "#666", marginTop: 4 } }}>
+                            <Text
+                              variant="small"
+                              styles={{ root: { color: "#666", marginTop: 4 } }}
+                            >
                               Taxes & Fees
                             </Text>
                           </Stack>
@@ -544,26 +626,49 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                         },
                       }}
                     >
-                      <Stack horizontal tokens={{ childrenGap: 20 }} styles={{ root: { marginBottom: 8 } }}>
+                      <Stack
+                        horizontal
+                        tokens={{ childrenGap: 20 }}
+                        styles={{ root: { marginBottom: 8 } }}
+                      >
                         <Stack.Item grow>
                           <Text variant="medium">Total Hammer Price</Text>
                         </Stack.Item>
-                        <Text variant="medium">{`$${totalHammerPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</Text>
+                        <Text variant="medium">{`$${totalHammerPrice.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`}</Text>
                       </Stack>
-                      <Stack horizontal tokens={{ childrenGap: 20 }} styles={{ root: { marginBottom: 8 } }}>
+                      <Stack
+                        horizontal
+                        tokens={{ childrenGap: 20 }}
+                        styles={{ root: { marginBottom: 8 } }}
+                      >
                         <Stack.Item grow>
                           <Text variant="medium">Total Taxes & Fees</Text>
                         </Stack.Item>
-                        <Text variant="medium">{`$${totalTaxesFees.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</Text>
+                        <Text variant="medium">{`$${totalTaxesFees.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`}</Text>
                       </Stack>
                       <Stack horizontal tokens={{ childrenGap: 20 }}>
                         <Stack.Item grow>
-                          <Text variant="medium" styles={{ root: { fontWeight: "bold" } }}>
+                          <Text
+                            variant="medium"
+                            styles={{ root: { fontWeight: "bold" } }}
+                          >
                             Total Amount
                           </Text>
                         </Stack.Item>
-                        <Text variant="medium" styles={{ root: { fontWeight: "bold" } }}>
-                          {`$${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                        <Text
+                          variant="medium"
+                          styles={{ root: { fontWeight: "bold" } }}
+                        >
+                          {`$${totalAmount.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}`}
                         </Text>
                       </Stack>
                     </Stack>
@@ -583,7 +688,12 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
                   </Stack>
 
                   {/* Buttons */}
-                  <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10 }} styles={{ root: { marginTop: 20 } }}>
+                  <Stack
+                    horizontal
+                    horizontalAlign="end"
+                    tokens={{ childrenGap: 10 }}
+                    styles={{ root: { marginTop: 20 } }}
+                  >
                     <DefaultButton
                       text="Cancel"
                       onClick={() => setIsPanelOpen(false)}
@@ -641,15 +751,26 @@ export const VehicleList: React.FC<VehicleListProps> = ({ sortOption, filterOpti
   );
 };
 
-// Export counts for use in Header.tsx
 export const getConsignmentCounts = (items: IVehicle[]) => {
   const categorizedItems = {
-    boughtVehicles: items.filter((item) => item.consignmentStatus === "Bought" && item.type === "Vehicle"),
-    boughtAutomobilia: items.filter((item) => item.consignmentStatus === "Bought" && item.type === "Automobilia"),
-    soldVehicles: items.filter((item) => item.consignmentStatus === "Sold" && item.type === "Vehicle"),
-    unsoldVehicles: items.filter((item) => item.consignmentStatus === "Unsold" && item.type === "Vehicle"),
-    soldAutomobilia: items.filter((item) => item.consignmentStatus === "Sold" && item.type === "Automobilia"),
-    unsoldAutomobilia: items.filter((item) => item.consignmentStatus === "Unsold" && item.type === "Automobilia"),
+    boughtVehicles: items.filter(
+      (item) => item.consignmentStatus === "Bought" && item.type === "Vehicle"
+    ),
+    boughtAutomobilia: items.filter(
+      (item) => item.consignmentStatus === "Bought" && item.type === "Automobilia"
+    ),
+    soldVehicles: items.filter(
+      (item) => item.consignmentStatus === "Sold" && item.type === "Vehicle"
+    ),
+    unsoldVehicles: items.filter(
+      (item) => item.consignmentStatus === "Unsold" && item.type === "Vehicle"
+    ),
+    soldAutomobilia: items.filter(
+      (item) => item.consignmentStatus === "Sold" && item.type === "Automobilia"
+    ),
+    unsoldAutomobilia: items.filter(
+      (item) => item.consignmentStatus === "Unsold" && item.type === "Automobilia"
+    ),
   };
 
   return {

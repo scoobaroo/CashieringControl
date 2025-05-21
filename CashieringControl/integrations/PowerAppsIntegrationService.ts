@@ -63,6 +63,8 @@ export default class PowerAppsIntegrationService {
           bjac_stage: raw["bjac_stage"],
           bjac_hammerprice: raw["bjac_hammerprice"],
           bjac_totalamount: raw["bjac_totalamount"],
+          bjac_consigntype: raw["bjac_consigntype"],
+          bjac_consigntypeFormattedValue: raw["bjac_consigntype@OData.Community.Display.V1.FormattedValue"] || ""
         }));
       } catch (error) {
         console.error("Error fetching vehicle titling addresses:", error);
