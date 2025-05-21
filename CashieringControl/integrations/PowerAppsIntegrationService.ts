@@ -38,7 +38,7 @@ export default class PowerAppsIntegrationService {
 
     public fetchCartItems = async (cartId: string): Promise<ICartItem[]> => {
       try {
-        const query = `?$select=bjac_cartitemid,_bjac_addressvehicletitledto_value,_bjac_cart_value,bjac_comments,bjac_commission,` +
+        const query = `?$select=bjac_consigntype,bjac_cartitemid,_bjac_addressvehicletitledto_value,_bjac_cart_value,bjac_comments,bjac_commission,` +
         `bjac_documentationfee,bjac_drive,bjac_hammerprice,bjac_isinvoiced,bjac_name,bjac_ship,bjac_stage,bjac_taxfee,bjac_total,` +
         `bjac_totalamount,bjac_transactiontype,bjac_transporttype,_bjac_vehicle_value,bjac_vehicletitledto&$filter=_bjac_cart_value eq ${cartId}`;
         const result = await this.context.webAPI.retrieveMultipleRecords("bjac_cartitem", query);
