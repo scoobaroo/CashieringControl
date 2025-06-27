@@ -46,16 +46,6 @@ export class CashieringControl implements ComponentFramework.StandardControl<IIn
 
     const accountId = (context.mode as any).contextInfo?.entityId;
 
-    // Fetch opportunities and their invoices
-    const opportunities: IOpportunity[] = await this.service.fetchConsignments(accountId);
-    await Promise.all(
-      opportunities.map(async (opportunity: IOpportunity) => {
-        const invoices = await this.service?.fetchInvoices(opportunity.opportunityId);
-        opportunity.invoices = invoices;
-      })
-    );
-    console.log("Opportunities with invoices:", opportunities);
-
     // Fetch cart and cart items
     const cart: ICart | null = await this.service?.fetchCart(accountId);
     if (cart !== null) {

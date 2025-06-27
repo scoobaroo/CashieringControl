@@ -92,41 +92,20 @@ export default class PowerAppsIntegrationService {
       }
     }
 
-    public fetchOpportunities = async (accountId: string): Promise<IOpportunity[]> => {
+    public fetchVehiclePhoto = async (vehicleId: string): Promise<string | undefined> => {
       try {
-        const query = `?$select=name,bjac_consignmenttype&$filter=_customerid_value eq ${accountId} and statecode eq 0`;
-        const result = await this.context.webAPI.retrieveMultipleRecords("opportunity", query);
-        return result.entities.map((entity: any) => ({
-          opportunityId: entity.opportunityid,
-          name: entity.name,
-          bjac_consignmenttype: entity["bjac_consignmenttype@OData.Community.Display.V1.FormattedValue"],
-          type: "",
-          bjac_state: entity["bjac_state@OData.Community.Display.V1.FormattedValue"],
-          status: entity["statuscode@OData.Community.Display.V1.FormattedValue"]
-        }));
-      } catch (error) {
-        console.error("Error fetching vehicle titling addresses:", error);
-        return [];
+         var q = `bjac_consignment_photos?$select=bjac_consignment_photo_fullpath,bjac_consignment_photo_phototype,_bjac_vehicleid_value&$filter=(bjac_consignment_photo_phototype eq 5 and _bjac_vehicleid_value eq ${id} and statecode eq 0)&$top=50`;
+        const result = await this.context.webAPI.retrieveMultipleRecords("opportunity", q);
+        if(result.entities.length > 0) {
+          const photo = result.entities[0];
+          return photo["bjac_consignment_photo_fullpath"];
+        }
       }
-    };
+      catch (error){
+        console.error("Error fetching vehicle photo:", error);
+        return "";
+      }
+    }
 
-    public fetchInvoices = async (opportunityId: string): Promise<IInvoice[]> => {
-      try {
-        const query = `?$select=invoiceid,statuscode&$expand=invoice_details($select=invoicedetailid,baseamount,_productid_value,extendedamount,priceperunit,quantity)&$filter=_opportunityid_value eq ${opportunityId}`;
-        const result = await this.context.webAPI.retrieveMultipleRecords("invoice", query);
-        return result.entities.map((entity: any) => ({
-          invoiceId: entity.invoiceid,
-          invoiceStatus: entity["statuscode@OData.Community.Display.V1.FormattedValue"],
-          invoiceDetails: entity.invoice_details ? entity.invoice_details.map((detail: any) => ({
-            invoiceDetailId: detail.invoicedetailid,
-            extendedamount: detail.extendedamount,
-            priceperunit: detail.priceperunit,
-            quantity: detail.quantity,
-          })) : []
-        }));
-      } catch (error) {
-        console.error("Error fetching invoices:", error);
-        return [];
-      }
-    };  
+  
 }
