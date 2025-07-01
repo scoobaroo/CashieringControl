@@ -1,5 +1,6 @@
 // CashieringControl/integrations/PowerAppsIntegrationService.ts
 import { IInputs } from "../generated/ManifestTypes";
+import { IAccountDetails } from "../interfaces/IAccountDetails";
 import { IAddress } from "../interfaces/IAddress";
 import { ICart } from "../interfaces/ICart";
 import { ICartItem } from "../interfaces/ICartItem";
@@ -46,6 +47,10 @@ export default class PowerAppsIntegrationService {
       const result = await this.context.webAPI.retrieveMultipleRecords("bjac_cartitem", query);
       return await Promise.all(result.entities.map(async (raw: any, index: number) => {
         const vehicle = await this.fetchVehicle(raw["_bjac_vehicle_value"]);
+        const opportunity = await this.fetchOpportunityRelatedToVehicleToFindSeller(raw["_bjac_vehicle_value"]);
+        console.log("Opportunity found:", opportunity);
+        const seller = opportunity ? await this.fetchAccountDetails(opportunity._parentaccountid_value) : null;
+        console.log("Seller found:", seller);
         const item: ICartItem = {
           key: index.toString(),
           bjac_taxfee: raw.bjac_taxfee,
@@ -71,7 +76,8 @@ export default class PowerAppsIntegrationService {
           bjac_totalamount: raw["bjac_totalamount"],
           bjac_consigntype: raw["bjac_consigntype"],
           bjac_consigntypeFormattedValue: raw["bjac_consigntype@OData.Community.Display.V1.FormattedValue"] || "",
-          vehicle: vehicle
+          vehicle: vehicle,
+          seller: seller || null,
         };
         return item;
       }));
@@ -97,6 +103,33 @@ export default class PowerAppsIntegrationService {
     } catch (error) {
       console.error("Error fetching vehicle titling addresses:", error);
       return undefined;
+    }
+  }
+
+  public fetchAccountDetails = async (accountId: string): Promise<IAccountDetails | null> => {
+    try {
+      const result = await this.context.webAPI.retrieveRecord("account", accountId);
+      if(result) {
+        return result as IAccountDetails;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching account details:", error);
+      return null;
+    }
+  }
+
+  public fetchOpportunityRelatedToVehicleToFindSeller = async (vehicleId: string): Promise<IOpportunity | null> => {
+    try {
+      const query = `?$filter=_bjac_vehicle_value eq ${vehicleId}`;
+      const result = await this.context.webAPI.retrieveMultipleRecords("opportunity", query);
+      if (result.entities.length > 0) {
+        return result.entities[0] as IOpportunity;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching opportunity related to vehicle:", error);
+      return null;
     }
   }
 

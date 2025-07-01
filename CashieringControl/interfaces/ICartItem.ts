@@ -1,4 +1,9 @@
-export interface ICartItem {
+import { IObjectWithKey } from "@fluentui/react";
+import { IVehicle } from "./IVehicle";
+import { IAccountDetails } from "./IAccountDetails";
+
+export interface ICartItem extends IObjectWithKey {
+    key: string;
     bjac_imageurl: string;
     bjac_cartitemId: string;
     bjac_cartId: string;
@@ -19,4 +24,9 @@ export interface ICartItem {
     bjac_stage: number;
     bjac_hammerprice: number;
     bjac_totalamount: number;
+    bjac_consigntypeFormattedValue: string;
+    bjac_consigntype: number;
+    bjac_taxfee: number;
+    vehicle: IVehicle | null;
+    seller: IAccountDetails | null; // Seller details, can be null if not available
 }

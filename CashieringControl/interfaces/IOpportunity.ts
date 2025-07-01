@@ -1,11 +1,8 @@
 import { IInvoice } from "./IInvoice";
 
 export interface IOpportunity {
-    opportunityId: string;
+    _parentaccountid_value: string;
+    opportunityid: string;
     name: string;
-    bjac_consignmenttype: string;
-    bjac_state: string;
-    status: string;
-    type: string;
     invoices?: IInvoice[];
 }
