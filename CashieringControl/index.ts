@@ -6,14 +6,13 @@ import PowerAppsIntegrationService from "./integrations/PowerAppsIntegrationServ
 import { IOpportunity } from "./interfaces/IOpportunity";
 import { ICart } from "./interfaces/ICart";
 import { ICartItem } from "./interfaces/ICartItem";
-import { IVehicle } from "./interfaces/IVehicle";
 
 export class CashieringControl implements ComponentFramework.StandardControl<IInputs, IOutputs> {
   private container: HTMLDivElement;
   private root: Root | null = null;
   private service: PowerAppsIntegrationService | null = null;
   private notifyOutputChanged: () => void;
-  private consignments: IVehicle[] = [];
+  private cartItems: ICartItem[] = [];
   private totals: any = {};
 
   public async init(
@@ -35,7 +34,7 @@ export class CashieringControl implements ComponentFramework.StandardControl<IIn
   private renderControl(): void {
     if (this.root) {
       this.root.render(
-        React.createElement(MainLayout, { consignments: this.consignments, totals: this.totals })
+        React.createElement(MainLayout, { cartItems: this.cartItems, totals: this.totals })
       );
     }
   }
@@ -47,27 +46,13 @@ export class CashieringControl implements ComponentFramework.StandardControl<IIn
     const accountId = (context.mode as any).contextInfo?.entityId;
 
     // Fetch cart and cart items
-    const cart: ICart | null = await this.service?.fetchCart(accountId);
-    if (cart !== null) {
+    const cart: ICart | undefined = await this.service?.fetchCart(accountId);
+    if (cart !== undefined) {
       const cartItems: ICartItem[] = await this.service?.fetchCartItems(cart.bjac_cartId);
       cart.cartItems = cartItems;
+      this.cartItems = cartItems;
     }
     console.log("Cart:", cart);
-
-    // Map cart items to IVehicle interface
-    this.consignments = cart?.cartItems?.map((item: ICartItem, index: number) => ({
-      key: item.bjac_cartitemId,
-      image: item.bjac_imageurl || "https://cdn.motor1.com/images/mgl/W8M4Go/s1/2015-lamborghini-veneno-roadster.jpg", // Fallback image
-      lot: `LOT${index + 1}`, // Generate a lot number since cart item doesn't provide one
-      name: item.bjac_name,
-      status: item.bjac_isinvoiced ? "PAID" : "NOT PAID",
-      releaseStatus: item.bjac_stageFormattedValue,
-      hammerPrice: `$${item.bjac_hammerprice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      taxesFees: `$${(item.bjac_commission + item.bjac_documentationfee).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      consignmentStatus: "Bought",
-      type: item.bjac_consigntypeFormattedValue,
-    })) || [];
-    console.log("Mapped consignments:", this.consignments);
     // Calculate totals based on cart items
     this.totals = {
       totalOwed: cart?.cartItems

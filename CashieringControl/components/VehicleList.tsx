@@ -22,13 +22,14 @@ import {
 } from "@fluentui/react";
 import { stackTokens } from "../styles";
 import { IVehicle } from "../interfaces/IVehicle";
+import { ICartItem } from "../interfaces/ICartItem";
 
 interface VehicleListProps {
   sortOption: string;
   filterOption: string;
   pivotKey: string;
   searchQuery: string;
-  initialItems: IVehicle[];
+  initialItems: ICartItem[];
   totals: any;
 }
 
@@ -88,7 +89,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
         onSelectionChanged: () => {
           setSelectedCount(selection.getSelectedCount());
         },
-        getKey: (item: IVehicle) => item.key,
+        getKey: (item: ICartItem) => item.key,
       }),
     []
   );
@@ -101,22 +102,22 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   // Categorize consignments by status and type
   const categorizedItems = React.useMemo(() => {
     const boughtVehicles = initialItems.filter(
-      (item) => item.consignmentStatus === "Bought" && item.type === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
     );
     const boughtAutomobilia = initialItems.filter(
-      (item) => item.consignmentStatus === "Bought" && item.type === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Automobilia" && item.bjac_isinvoiced
     );
     const soldVehicles = initialItems.filter(
-      (item) => item.consignmentStatus === "Sold" && item.type === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
     );
     const unsoldVehicles = initialItems.filter(
-      (item) => item.consignmentStatus === "Unsold" && item.type === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
     );
     const soldAutomobilia = initialItems.filter(
-      (item) => item.consignmentStatus === "Sold" && item.type === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Automobilia" && item.bjac_isinvoiced
     );
     const unsoldAutomobilia = initialItems.filter(
-      (item) => item.consignmentStatus === "Unsold" && item.type === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Automobilia" && item.bjac_isinvoiced
     );
 
     return {
@@ -145,7 +146,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
       case "unsoldAutomobilia":
         return categorizedItems.unsoldAutomobilia;
       case "salesCompleted":
-        return initialItems.filter((item) => item.consignmentStatus === "Sold");
+        return initialItems.filter((item) => item.bjac_isinvoiced);
       default:
         return initialItems;
     }
@@ -156,17 +157,16 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     if (!searchQuery) return pivotItems;
     const query = searchQuery.toLowerCase();
     return pivotItems.filter((item) =>
-      item.name.toLowerCase().includes(query) || item.lot.toLowerCase().includes(query)
+      item.bjac_name.toLowerCase().includes(query)
     );
   }, [searchQuery, pivotItems]);
 
-  // Apply status filtering
   const filteredItems = React.useMemo(() => {
     let filtered = [...searchedItems];
-    if (filterOption === "paid") {
-      filtered = filtered.filter((item) => item.status === "PAID");
-    } else if (filterOption === "notPaid") {
-      filtered = filtered.filter((item) => item.status === "NOT PAID");
+    if (filterOption === "vehicle") {
+      filtered = filtered.filter((item) => item.bjac_consigntypeFormattedValue === "Vehicle");
+    } else if (filterOption === "automobilia") {
+      filtered = filtered.filter((item) => item.bjac_consigntypeFormattedValue  === "Automobilia");
     }
     return filtered;
   }, [filterOption, searchedItems]);
@@ -176,44 +176,44 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     const sorted = [...filteredItems];
     if (sortOption === "priceAsc") {
       sorted.sort((a, b) => {
-        const priceA = parseFloat(a.hammerPrice.replace(/[^0-9.-]+/g, ""));
-        const priceB = parseFloat(b.hammerPrice.replace(/[^0-9.-]+/g, ""));
+        const priceA = parseFloat(a.bjac_hammerprice.toString().replace(/[^0-9.-]+/g, ""));
+        const priceB = parseFloat(b.bjac_hammerprice.toString().replace(/[^0-9.-]+/g, ""));
         return priceA - priceB;
       });
     } else if (sortOption === "priceDesc") {
       sorted.sort((a, b) => {
-        const priceA = parseFloat(a.hammerPrice.replace(/[^0-9.-]+/g, ""));
-        const priceB = parseFloat(b.hammerPrice.replace(/[^0-9.-]+/g, ""));
+        const priceA = parseFloat(a.bjac_hammerprice.toString().replace(/[^0-9.-]+/g, ""));
+        const priceB = parseFloat(b.bjac_hammerprice.toString().replace(/[^0-9.-]+/g, ""));
         return priceB - priceA;
       });
     } else if (sortOption === "nameAsc") {
-      sorted.sort((a, b) => a.name.localeCompare(b.name));
+      sorted.sort((a, b) => a.bjac_name.localeCompare(b.bjac_name));
     } else if (sortOption === "nameDesc") {
-      sorted.sort((a, b) => b.name.localeCompare(b.name));
+      sorted.sort((a, b) => b.bjac_name.localeCompare(a.bjac_name));
     }
     return sorted;
   }, [sortOption, filteredItems]);
 
-  const selectedVehicles = selection.getSelection() as IVehicle[];
+  const selectedVehicles = selection.getSelection() as ICartItem[];
 
-  // Calculate totals for Purchase Report Breakdown
-  const totalHammerPrice = selectedVehicles.reduce((sum, vehicle) => {
-    const price = parseFloat(vehicle.hammerPrice.replace(/[^0-9.-]+/g, ""));
-    return sum + price;
-  }, 0);
+  // // Calculate totals for Purchase Report Breakdown
+  // const totalHammerPrice = selectedVehicles.reduce((sum, vehicle) => {
+  //   const price = parseFloat(vehicle.toString().replace(/[^0-9.-]+/g, ""));
+  //   return sum + price;
+  // }, 0);
 
-  const totalTaxesFees = selectedVehicles.reduce((sum, vehicle) => {
-    const fees = parseFloat(vehicle.taxesFees.replace(/[^0-9.-]+/g, ""));
-    return sum + fees;
-  }, 0);
+  // const totalTaxesFees = selectedVehicles.reduce((sum, vehicle) => {
+  //   const fees = parseFloat(.bjac_taxfee.replace(/[^0-9.-]+/g, ""));
+  //   return sum + fees;
+  // }, 0);
 
-  const totalAmount = totalHammerPrice + totalTaxesFees;
+  // const totalAmount = totalHammerPrice + totalTaxesFees;
 
   return (
     <Stack tokens={stackTokens} styles={{ root: { padding: 10 } }}>
       <Stack horizontal horizontalAlign="space-between" tokens={{ childrenGap: 10 }}>
         <Text variant="medium">
-          Selected Vehicles <Text styles={{ root: { fontWeight: "bold" } }}>{selectedCount}</Text>
+          Selected Items <Text styles={{ root: { fontWeight: "bold" } }}>{selectedCount}</Text>
         </Text>
         <PrimaryButton
           text="Deliver Selected Cars"
@@ -236,7 +236,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
             selectionPreservedOnEmptyClick={true}
             onRenderRow={(props) => {
               if (!props) return null;
-              const item = props.item as IVehicle;
+              const item = props.item as ICartItem;
               const isSelected = props.selection.isIndexSelected(props.itemIndex);
 
               return (
@@ -256,7 +256,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                   {/* Image */}
                   <Stack.Item>
                     <Image
-                      src={item.image}
+                      src={item.bjac_imageurl}
                       width={150}
                       height={90}
                       styles={{ root: { borderRadius: 4 } }}
@@ -273,10 +273,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         styles={{ root: { marginBottom: 8 } }}
                       >
                         <Text variant="small" styles={{ root: { color: "#666" } }}>
-                          Lot#: {item.lot}
+                          Lot#: 0
                         </Text>
                         <Text variant="mediumPlus" styles={{ root: { fontWeight: "bold" } }}>
-                          {item.name}
+                          {item.bjac_name}
                         </Text>
                       </Stack>
                       <Stack horizontal tokens={{ childrenGap: 20 }}>
@@ -293,7 +293,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                               },
                             }}
                           >
-                            {item.status}
+                            {item.bjac_stageFormattedValue}
                           </Text>
                           <Text
                             variant="small"
@@ -315,7 +315,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                               },
                             }}
                           >
-                            {item.releaseStatus}
+                            {item.bjac_stageFormattedValue}
                           </Text>
                           <Text
                             variant="small"
@@ -325,7 +325,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           </Text>
                         </Stack>
                         <Stack>
-                          <Text variant="medium">{item.hammerPrice}</Text>
+                          <Text variant="medium">{item.bjac_hammerprice}</Text>
                           <Text
                             variant="small"
                             styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -334,7 +334,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           </Text>
                         </Stack>
                         <Stack>
-                          <Text variant="medium">{item.taxesFees}</Text>
+                          <Text variant="medium">{item.bjac_taxfee}</Text>
                           <Text
                             variant="small"
                             styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -494,7 +494,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                   >
                     <Stack.Item>
                       <Image
-                        src={vehicle.image}
+                        src={vehicle.bjac_imageurl}
                         width={150}
                         height={90}
                         styles={{ root: { borderRadius: 4 } }}
@@ -509,13 +509,13 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           styles={{ root: { marginBottom: 8 } }}
                         >
                           <Text variant="small" styles={{ root: { color: "#666" } }}>
-                            Lot#: {vehicle.lot}
+                            Lot#: 0
                           </Text>
                           <Text
                             variant="mediumPlus"
                             styles={{ root: { fontWeight: "bold" } }}
                           >
-                            {vehicle.name}
+                            {vehicle.bjac_name}
                           </Text>
                         </Stack>
                         <Stack horizontal tokens={{ childrenGap: 20 }}>
@@ -532,7 +532,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                                 },
                               }}
                             >
-                              {vehicle.status}
+                              {vehicle.bjac_stageFormattedValue}
                             </Text>
                             <Text
                               variant="small"
@@ -554,7 +554,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                                 },
                               }}
                             >
-                              {vehicle.releaseStatus}
+                              {vehicle.bjac_stageFormattedValue}
                             </Text>
                             <Text
                               variant="small"
@@ -564,7 +564,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                             </Text>
                           </Stack>
                           <Stack>
-                            <Text variant="medium">{vehicle.hammerPrice}</Text>
+                            <Text variant="medium">{vehicle.bjac_hammerprice}</Text>
                             <Text
                               variant="small"
                               styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -573,7 +573,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                             </Text>
                           </Stack>
                           <Stack>
-                            <Text variant="medium">{vehicle.taxesFees}</Text>
+                            <Text variant="medium">{vehicle.bjac_taxfee}</Text>
                             <Text
                               variant="small"
                               styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -634,10 +634,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         <Stack.Item grow>
                           <Text variant="medium">Total Hammer Price</Text>
                         </Stack.Item>
-                        <Text variant="medium">{`$${totalHammerPrice.toLocaleString("en-US", {
+                        {/* <Text variant="medium">{`$${totalHammerPrice.toLocaleString("en-US", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
-                        })}`}</Text>
+                        })}`}</Text> */}
                       </Stack>
                       <Stack
                         horizontal
@@ -647,10 +647,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         <Stack.Item grow>
                           <Text variant="medium">Total Taxes & Fees</Text>
                         </Stack.Item>
-                        <Text variant="medium">{`$${totalTaxesFees.toLocaleString("en-US", {
+                        {/* <Text variant="medium">{`$${totalTaxesFees.toLocaleString("en-US", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
-                        })}`}</Text>
+                        })}`}</Text> */}
                       </Stack>
                       <Stack horizontal tokens={{ childrenGap: 20 }}>
                         <Stack.Item grow>
@@ -665,10 +665,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           variant="medium"
                           styles={{ root: { fontWeight: "bold" } }}
                         >
-                          {`$${totalAmount.toLocaleString("en-US", {
+                          {/* {`$${.toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                          })}`}
+                          })}`} */}
                         </Text>
                       </Stack>
                     </Stack>
@@ -716,7 +716,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           selectedAddress,
                           selectedCarrier,
                           comments,
-                          totalAmount,
                         });
                         setIsPanelOpen(false);
                       }}
@@ -751,28 +750,28 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   );
 };
 
-export const getConsignmentCounts = (items: IVehicle[]) => {
+export const getConsignmentCounts = (items: ICartItem[]) => {
   const categorizedItems = {
     boughtVehicles: items.filter(
-      (item) => item.consignmentStatus === "Bought" && item.type === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue == "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
     ),
     boughtAutomobilia: items.filter(
-      (item) => item.consignmentStatus === "Bought" && item.type === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue == "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
     ),
     soldVehicles: items.filter(
-      (item) => item.consignmentStatus === "Sold" && item.type === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
     ),
     unsoldVehicles: items.filter(
-      (item) => item.consignmentStatus === "Unsold" && item.type === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
     ),
     soldAutomobilia: items.filter(
-      (item) => item.consignmentStatus === "Sold" && item.type === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
     ),
     unsoldAutomobilia: items.filter(
-      (item) => item.consignmentStatus === "Unsold" && item.type === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
     ),
   };
-
+  console.log("Categorized Items:", categorizedItems);
   return {
     boughtVehiclesCount: categorizedItems.boughtVehicles.length,
     boughtAutomobiliaCount: categorizedItems.boughtAutomobilia.length,

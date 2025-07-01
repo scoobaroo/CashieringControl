@@ -29,8 +29,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const filterOptions: IDropdownOption[] = [
     { key: "all", text: "All" },
-    { key: "paid", text: "Paid" },
-    { key: "notPaid", text: "Not Paid" },
+    { key: "vehicle", text: "Vehicle" },
+    { key: "automobilia", text: "Automobilia" },
   ];
 
   const sortOptions: IDropdownOption[] = [
