@@ -21,8 +21,8 @@ import {
   IDropdownOption,
 } from "@fluentui/react";
 import { stackTokens } from "../styles";
-import { IVehicle } from "../interfaces/IVehicle";
 import { ICartItem } from "../interfaces/ICartItem";
+import { VehicleDetailsPanel } from "./VehicleDetailsPanel";
 
 interface VehicleListProps {
   sortOption: string;
@@ -43,7 +43,6 @@ const columns: IColumn[] = [
   { key: "taxesFees", name: "Taxes & Fees", fieldName: "taxesFees", minWidth: 100 },
 ];
 
-// Carrier options for the dropdown
 const carrierOptions: IDropdownOption[] = [
   { key: "fedex", text: "FedEx Vehicle Transport" },
   { key: "ups", text: "UPS Auto Logistics" },
@@ -54,7 +53,6 @@ const carrierOptions: IDropdownOption[] = [
   { key: "uship", text: "uShip Vehicle Transport" },
 ];
 
-// Address options for the Delivery Address dropdown
 const addressOptions: IDropdownOption[] = [
   { key: "address1", text: "123 Main St, Scottsdale, AZ 85251" },
   { key: "address2", text: "456 Oak Ave, Phoenix, AZ 85004" },
@@ -65,7 +63,7 @@ const addressOptions: IDropdownOption[] = [
 
 const detailsListStyles: Partial<IDetailsListStyles> = {
   root: { marginTop: 0 },
-  headerWrapper: { display: "none" }, // Hide the column headers
+  headerWrapper: { display: "none" },
 };
 
 export const VehicleList: React.FC<VehicleListProps> = ({
@@ -79,6 +77,8 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   const [selectedCount, setSelectedCount] = React.useState(0);
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [isPanelOpen, setIsPanelOpen] = React.useState(false);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = React.useState(false);
+  const [selectedVehicle, setSelectedVehicle] = React.useState<ICartItem | null>(null);
   const [selectedAddress, setSelectedAddress] = React.useState<string | undefined>(undefined);
   const [selectedCarrier, setSelectedCarrier] = React.useState<string | undefined>(undefined);
   const [comments, setComments] = React.useState("");
@@ -99,7 +99,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     setRefreshKey((prev) => prev + 1);
   };
 
-  // Categorize consignments by status and type
   const categorizedItems = React.useMemo(() => {
     const boughtVehicles = initialItems.filter(
       (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
@@ -130,7 +129,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     };
   }, [initialItems]);
 
-  // Select the appropriate list based on the pivot key
   const pivotItems = React.useMemo(() => {
     switch (pivotKey) {
       case "boughtVehicles":
@@ -152,7 +150,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     }
   }, [pivotKey, categorizedItems, initialItems]);
 
-  // Apply search filtering
   const searchedItems = React.useMemo(() => {
     if (!searchQuery) return pivotItems;
     const query = searchQuery.toLowerCase();
@@ -166,12 +163,11 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     if (filterOption === "vehicle") {
       filtered = filtered.filter((item) => item.bjac_consigntypeFormattedValue === "Vehicle");
     } else if (filterOption === "automobilia") {
-      filtered = filtered.filter((item) => item.bjac_consigntypeFormattedValue  === "Automobilia");
+      filtered = filtered.filter((item) => item.bjac_consigntypeFormattedValue === "Automobilia");
     }
     return filtered;
   }, [filterOption, searchedItems]);
 
-  // Apply sorting
   const sortedItems = React.useMemo(() => {
     const sorted = [...filteredItems];
     if (sortOption === "priceAsc") {
@@ -196,19 +192,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
 
   const selectedVehicles = selection.getSelection() as ICartItem[];
 
-  // // Calculate totals for Purchase Report Breakdown
-  // const totalHammerPrice = selectedVehicles.reduce((sum, vehicle) => {
-  //   const price = parseFloat(vehicle.toString().replace(/[^0-9.-]+/g, ""));
-  //   return sum + price;
-  // }, 0);
-
-  // const totalTaxesFees = selectedVehicles.reduce((sum, vehicle) => {
-  //   const fees = parseFloat(.bjac_taxfee.replace(/[^0-9.-]+/g, ""));
-  //   return sum + fees;
-  // }, 0);
-
-  // const totalAmount = totalHammerPrice + totalTaxesFees;
-
   return (
     <Stack tokens={stackTokens} styles={{ root: { padding: 10 } }}>
       <Stack horizontal horizontalAlign="space-between" tokens={{ childrenGap: 10 }}>
@@ -223,7 +206,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
       </Stack>
 
       <Stack horizontal tokens={{ childrenGap: 20 }}>
-        {/* Left Section: Vehicle List */}
         <Stack.Item grow styles={{ root: { flex: 3 } }}>
           <DetailsList
             key={refreshKey}
@@ -253,7 +235,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                     },
                   }}
                 >
-                  {/* Image */}
                   <Stack.Item>
                     <Image
                       src={item.bjac_imageurl}
@@ -262,8 +243,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                       styles={{ root: { borderRadius: 4 } }}
                     />
                   </Stack.Item>
-
-                  {/* Main Content */}
                   <Stack.Item grow>
                     <Stack tokens={{ childrenGap: 8 }}>
                       <Stack
@@ -345,12 +324,14 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                       </Stack>
                     </Stack>
                   </Stack.Item>
-
-                  {/* Buttons */}
                   <Stack.Item>
                     <Stack horizontal tokens={{ childrenGap: 8 }}>
                       <DefaultButton
                         text="View"
+                        onClick={() => {
+                          setSelectedVehicle(item);
+                          setIsDetailsPanelOpen(true);
+                        }}
                         styles={{
                           root: {
                             border: "none !important",
@@ -410,8 +391,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
             }}
           />
         </Stack.Item>
-
-        {/* Right Section: Totals */}
         <Stack.Item styles={{ root: { flex: 1, paddingTop: 16 } }}>
           <Stack tokens={{ childrenGap: 16 }}>
             <Stack>
@@ -456,7 +435,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
         </Stack.Item>
       </Stack>
 
-      {/* Panel for Selected Vehicles */}
       <Panel
         isOpen={isPanelOpen}
         onDismiss={() => setIsPanelOpen(false)}
@@ -473,7 +451,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
         <Pivot>
           <PivotItem headerText="Delivery">
             <Stack tokens={{ childrenGap: 20 }} styles={{ root: { paddingTop: 20 } }}>
-              {/* Selected Vehicles List */}
               {selectedVehicles.length === 0 ? (
                 <Text>No vehicles selected.</Text>
               ) : (
@@ -587,8 +564,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                   </Stack>
                 ))
               )}
-
-              {/* Delivery Address Dropdown */}
               {selectedVehicles.length > 0 && (
                 <>
                   <Stack tokens={{ childrenGap: 8 }}>
@@ -601,8 +576,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                       styles={{ root: { width: "100%" } }}
                     />
                   </Stack>
-
-                  {/* Select a Carrier */}
                   <Stack tokens={{ childrenGap: 8 }}>
                     <Label>Select a Carrier</Label>
                     <Dropdown
@@ -613,8 +586,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                       styles={{ root: { width: "100%" } }}
                     />
                   </Stack>
-
-                  {/* Purchase Report Breakdown */}
                   <Stack tokens={{ childrenGap: 8 }}>
                     <Label>Purchase Report Breakdown</Label>
                     <Stack
@@ -634,10 +605,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         <Stack.Item grow>
                           <Text variant="medium">Total Hammer Price</Text>
                         </Stack.Item>
-                        {/* <Text variant="medium">{`$${totalHammerPrice.toLocaleString("en-US", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}`}</Text> */}
                       </Stack>
                       <Stack
                         horizontal
@@ -647,10 +614,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         <Stack.Item grow>
                           <Text variant="medium">Total Taxes & Fees</Text>
                         </Stack.Item>
-                        {/* <Text variant="medium">{`$${totalTaxesFees.toLocaleString("en-US", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}`}</Text> */}
                       </Stack>
                       <Stack horizontal tokens={{ childrenGap: 20 }}>
                         <Stack.Item grow>
@@ -661,20 +624,9 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                             Total Amount
                           </Text>
                         </Stack.Item>
-                        <Text
-                          variant="medium"
-                          styles={{ root: { fontWeight: "bold" } }}
-                        >
-                          {/* {`$${.toLocaleString("en-US", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}`} */}
-                        </Text>
                       </Stack>
                     </Stack>
                   </Stack>
-
-                  {/* Comments */}
                   <Stack tokens={{ childrenGap: 8 }}>
                     <Label>Comments</Label>
                     <TextField
@@ -686,8 +638,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                       styles={{ root: { width: "100%" } }}
                     />
                   </Stack>
-
-                  {/* Buttons */}
                   <Stack
                     horizontal
                     horizontalAlign="end"
@@ -735,17 +685,24 @@ export const VehicleList: React.FC<VehicleListProps> = ({
           <PivotItem headerText="Billing">
             <Stack tokens={{ childrenGap: 20 }} styles={{ root: { paddingTop: 20 } }}>
               <Text>Billing information will be displayed here.</Text>
-              {/* Add billing content as needed */}
             </Stack>
           </PivotItem>
           <PivotItem headerText="Notes">
             <Stack tokens={{ childrenGap: 20 }} styles={{ root: { paddingTop: 20 } }}>
               <Text>Notes will be displayed here.</Text>
-              {/* Add notes content as needed */}
             </Stack>
           </PivotItem>
         </Pivot>
       </Panel>
+
+      <VehicleDetailsPanel
+        isOpen={isDetailsPanelOpen}
+        onDismiss={() => {
+          setIsDetailsPanelOpen(false);
+          setSelectedVehicle(null);
+        }}
+        vehicle={selectedVehicle}
+      />
     </Stack>
   );
 };

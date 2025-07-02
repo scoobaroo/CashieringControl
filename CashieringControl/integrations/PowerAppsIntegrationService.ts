@@ -52,6 +52,7 @@ export default class PowerAppsIntegrationService {
         const seller = opportunity ? await this.fetchAccountDetails(opportunity._parentaccountid_value) : null;
         console.log("Seller found:", seller);
         const item: ICartItem = {
+          bjac_lot: opportunity!.bjac_lot || "",
           key: index.toString(),
           bjac_taxfee: raw.bjac_taxfee,
           bjac_imageurl: raw["bjac_imageurl"],
