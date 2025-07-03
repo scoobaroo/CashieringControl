@@ -131,11 +131,11 @@ export const VehicleDetailsPanel: React.FC<VehicleDetailsPanelProps> = ({
                 <Label>Cost Breakdown</Label>
                 <ResponsiveContainer width="100%" height={250}>
                     <BarChart layout="vertical" data={breakdownData}>
-                    <XAxis type="number" tickFormatter={(val) => `$${val.toLocaleString()}`} />
+                    <XAxis type="number" tickFormatter={(val: any) => `$${val.toLocaleString()}`} />
                     <YAxis type="category" dataKey="name" width={150} />
-                    <Tooltip formatter={(val) => `$${val.toLocaleString()}`} />
+                    <Tooltip formatter={(val: any) => `$${val.toLocaleString()}`} />
                     <Bar dataKey="value">
-                        <LabelList dataKey="value" position="right" formatter={(val) => `$${val!.toLocaleString()}`} />
+                        <LabelList dataKey="value" position="right" formatter={(val: any) => `$${val!.toLocaleString()}`} />
                     </Bar>
                     </BarChart>
                 </ResponsiveContainer>

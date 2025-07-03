@@ -15,6 +15,7 @@ export interface ICartItem extends IObjectWithKey {
     bjac_transactiontypeFormattedValue: string;
     bjac_transactiontype: number;
     bjac_comments: string;
+    bjac_lot: string;
     bjac_name: string;
     bjac_documentationfee: number;
     bjac_documentationfeeFormattedValue: string;

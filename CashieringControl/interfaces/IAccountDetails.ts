@@ -1,6 +1,6 @@
 export interface IAccountDetails {
   accountid: string;
-
+  name: string;
   bjac_account_taxid?: string;
   bjac_customer_dealer_name?: string;
 

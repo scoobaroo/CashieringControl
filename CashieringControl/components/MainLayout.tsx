@@ -2,34 +2,22 @@ import * as React from "react";
 import { Stack } from "@fluentui/react";
 import { Header } from "./Header";
 import { VehicleList, getConsignmentCounts } from "./VehicleList";
-
+import { ICartItem } from "../interfaces/ICartItem";
 // Define IVehicle interface for type safety
-interface IVehicle {
-  key: string;
-  image: string;
-  lot: string;
-  name: string;
-  status: string;
-  releaseStatus: string;
-  hammerPrice: string;
-  taxesFees: string;
-  consignmentStatus: string;
-  type: string;
-}
 
 interface MainLayoutProps {
-  consignments: IVehicle[];
+  cartItems: ICartItem[];
   totals: any;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ consignments, totals }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ cartItems, totals }) => {
   const [sortOption, setSortOption] = React.useState<string>("nameAsc"); // Default sort to "A-Z"
   const [filterOption, setFilterOption] = React.useState<string>("all"); // Default filter to "All"
   const [pivotKey, setPivotKey] = React.useState<string>("salesCompleted");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
 
   // Calculate counts for PivotItem itemCount using the consignments prop
-  const counts = getConsignmentCounts(consignments);
+  const counts = getConsignmentCounts(cartItems);
 
   return (
     <Stack styles={{ root: { height: "100vh" } }}>
@@ -50,7 +38,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ consignments, totals }) 
         filterOption={filterOption}
         pivotKey={pivotKey}
         searchQuery={searchQuery}
-        initialItems={consignments}
+        initialItems={cartItems}
         totals={totals}
       />
     </Stack>
