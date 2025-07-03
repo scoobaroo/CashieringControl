@@ -11,12 +11,25 @@ import {
   IStackTokens,
 } from "@fluentui/react";
 import { ICartItem } from "../interfaces/ICartItem";
+import { ICostBreakdownItem } from "../interfaces/ICostBreakdownItem";
 import { stackTokens } from "../styles";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
+
 
 interface VehicleDetailsPanelProps {
   isOpen: boolean;
   onDismiss: () => void;
   vehicle: ICartItem | null;
+  breakdownData?: ICostBreakdownItem;
 }
 
 export const VehicleDetailsPanel: React.FC<VehicleDetailsPanelProps> = ({
@@ -25,6 +38,49 @@ export const VehicleDetailsPanel: React.FC<VehicleDetailsPanelProps> = ({
   vehicle,
 }) => {
   if (!vehicle) return null;
+  const [breakdownData, setBreakdownData] = React.useState<ICostBreakdownItem[]>([]);
+
+  React.useEffect(() => {
+    if (!vehicle) {
+      setBreakdownData([]);
+      return;
+    }
+
+    const breakdown: ICostBreakdownItem[] = [
+      {
+        name: "Hammer Price",
+        value: vehicle.bjac_hammerprice ?? 0,
+        color: "#7A5FFF",
+      },
+      {
+        name: "Commission",
+        value: vehicle.bjac_commission ?? 0,
+        color: "#9E82FF",
+      },
+      {
+        name: "Taxes",
+        value: vehicle.bjac_taxfee ?? 0,
+        color: "#BBAEFF",
+      },
+      {
+        name: "Shipping",
+        value: 1000, // Placeholder or pull real value
+        color: "#D5CEFF",
+      },
+      {
+        name: "Documentation Fee",
+        value: vehicle.bjac_documentationfee ?? 0,
+        color: "#ECE7FF",
+      },
+      {
+        name: "Buyer Fee",
+        value: 500, // Static or dynamic if available
+        color: "#F7F5FF",
+      },
+    ];
+
+    setBreakdownData(breakdown);
+  }, [vehicle]);
 
   const formatCurrency = (value: number | undefined) =>
     value !== undefined
@@ -70,6 +126,19 @@ export const VehicleDetailsPanel: React.FC<VehicleDetailsPanelProps> = ({
                   vehicle.vehicle?.bjac_vehicle_style || ""
                 }`}
               </Text>
+            </Stack.Item>
+            <Stack.Item>
+                <Label>Cost Breakdown</Label>
+                <ResponsiveContainer width="100%" height={250}>
+                    <BarChart layout="vertical" data={breakdownData}>
+                    <XAxis type="number" tickFormatter={(val) => `$${val.toLocaleString()}`} />
+                    <YAxis type="category" dataKey="name" width={150} />
+                    <Tooltip formatter={(val) => `$${val.toLocaleString()}`} />
+                    <Bar dataKey="value">
+                        <LabelList dataKey="value" position="right" formatter={(val) => `$${val!.toLocaleString()}`} />
+                    </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
             </Stack.Item>
             <Stack.Item>
               <Label>Total Price</Label>
