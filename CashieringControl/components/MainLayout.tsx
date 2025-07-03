@@ -7,12 +7,11 @@ import { Spinner, SpinnerSize } from "@fluentui/react"; // Import Spinner
 
 interface MainLayoutProps {
   cartItems: ICartItem[];
-  totals: any;
   isLoading: boolean;
   notifyOutputChanged: () => void;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ cartItems, totals, isLoading, notifyOutputChanged }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ cartItems, isLoading, notifyOutputChanged }) => {
   const [sortOption, setSortOption] = React.useState<string>("nameAsc"); // Default sort to "A-Z"
   const [filterOption, setFilterOption] = React.useState<string>("all"); // Default filter to "All"
   const [pivotKey, setPivotKey] = React.useState<string>("salesCompleted");
@@ -47,7 +46,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ cartItems, totals, isLoa
             pivotKey={pivotKey}
             searchQuery={searchQuery}
             initialItems={cartItems}
-            totals={totals}
           />
         </>
       )}

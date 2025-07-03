@@ -30,7 +30,6 @@ interface VehicleListProps {
   pivotKey: string;
   searchQuery: string;
   initialItems: ICartItem[];
-  totals: any;
 }
 
 const columns: IColumn[] = [
@@ -72,7 +71,6 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   pivotKey,
   searchQuery,
   initialItems,
-  totals,
 }) => {
   const [selectedCount, setSelectedCount] = React.useState(0);
   const [refreshKey, setRefreshKey] = React.useState(0);
@@ -192,6 +190,25 @@ export const VehicleList: React.FC<VehicleListProps> = ({
 
   const selectedVehicles = selection.getSelection() as ICartItem[];
 
+  // Function to calculate totals based on provided items
+  const calculateTotals = (items: ICartItem[]) => {
+    const totalOwed = items.reduce((sum, item) => sum + (item.bjac_total || 0), 0);
+    const totalHammerPrice = items.reduce((sum, item) => sum + (item.bjac_hammerprice || 0), 0);
+    const totalFees = items.reduce((sum, item) => sum + ((item.bjac_commission || 0) + (item.bjac_documentationfee || 0) + (item.bjac_taxfee || 0)), 0);
+
+    return {
+      totalOwed: `$${totalOwed.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      bidderDeposit: "$10,000.00", // Static value
+      escrowAmount: "$5,000.00",  // Static value
+      credits: "$0.00",          // Static value
+      totalHammerPrice: `$${totalHammerPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      totalFees: `$${totalFees.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    };
+  };
+
+  // Compute display totals based on selection
+  const displayTotals = selectedVehicles.length > 0 ? calculateTotals(selectedVehicles) : calculateTotals(sortedItems);
+
   return (
     <Stack tokens={stackTokens} styles={{ root: { padding: 10 } }}>
       <Stack horizontal horizontalAlign="space-between" tokens={{ childrenGap: 10 }}>
@@ -252,7 +269,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         styles={{ root: { marginBottom: 8 } }}
                       >
                         <Text variant="small" styles={{ root: { color: "#666" } }}>
-                          Lot#: 0
+                          Lot#: {item.bjac_lot || "0"}
                         </Text>
                         <Text variant="mediumPlus" styles={{ root: { fontWeight: "bold" } }}>
                           {item.bjac_name}
@@ -395,38 +412,38 @@ export const VehicleList: React.FC<VehicleListProps> = ({
           <Stack tokens={{ childrenGap: 16 }}>
             <Stack>
               <Text variant="large" styles={{ root: { fontWeight: "bold" } }}>
-                {totals.totalOwed}
+                {displayTotals.totalOwed}
               </Text>
               <Text variant="medium" styles={{ root: { color: "#666" } }}>
                 Total Owed to Barrett-Jackson
               </Text>
             </Stack>
             <Stack>
-              <Text variant="medium">{totals.bidderDeposit}</Text>
+              <Text variant="medium">{displayTotals.bidderDeposit}</Text>
               <Text variant="medium" styles={{ root: { color: "#666" } }}>
                 Bidder Deposit
               </Text>
             </Stack>
             <Stack>
-              <Text variant="medium">{totals.escrowAmount}</Text>
+              <Text variant="medium">{displayTotals.escrowAmount}</Text>
               <Text variant="medium" styles={{ root: { color: "#666" } }}>
                 Escrow Amount
               </Text>
             </Stack>
             <Stack>
-              <Text variant="medium">{totals.credits}</Text>
+              <Text variant="medium">{displayTotals.credits}</Text>
               <Text variant="medium" styles={{ root: { color: "black" } }}>
                 Credits
               </Text>
             </Stack>
             <Stack>
-              <Text variant="medium">{totals.totalHammerPrice}</Text>
+              <Text variant="medium">{displayTotals.totalHammerPrice}</Text>
               <Text variant="medium" styles={{ root: { color: "#666" } }}>
                 Total Hammer Price
               </Text>
             </Stack>
             <Stack>
-              <Text variant="medium">{totals.totalFees}</Text>
+              <Text variant="medium">{displayTotals.totalFees}</Text>
               <Text variant="medium" styles={{ root: { color: "#666" } }}>
                 Total Fees
               </Text>
@@ -486,7 +503,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           styles={{ root: { marginBottom: 8 } }}
                         >
                           <Text variant="small" styles={{ root: { color: "#666" } }}>
-                            Lot#: 0
+                            Lot#: {vehicle.bjac_lot || "0"}
                           </Text>
                           <Text
                             variant="mediumPlus"
@@ -605,6 +622,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         <Stack.Item grow>
                           <Text variant="medium">Total Hammer Price</Text>
                         </Stack.Item>
+                        <Text variant="medium">{displayTotals.totalHammerPrice}</Text>
                       </Stack>
                       <Stack
                         horizontal
@@ -614,6 +632,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                         <Stack.Item grow>
                           <Text variant="medium">Total Taxes & Fees</Text>
                         </Stack.Item>
+                        <Text variant="medium">{displayTotals.totalFees}</Text>
                       </Stack>
                       <Stack horizontal tokens={{ childrenGap: 20 }}>
                         <Stack.Item grow>
@@ -624,6 +643,9 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                             Total Amount
                           </Text>
                         </Stack.Item>
+                        <Text variant="medium" styles={{ root: { fontWeight: "bold" } }}>
+                          {displayTotals.totalOwed}
+                        </Text>
                       </Stack>
                     </Stack>
                   </Stack>
@@ -710,22 +732,22 @@ export const VehicleList: React.FC<VehicleListProps> = ({
 export const getConsignmentCounts = (items: ICartItem[]) => {
   const categorizedItems = {
     boughtVehicles: items.filter(
-      (item) => item.bjac_transactiontypeFormattedValue == "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
     ),
     boughtAutomobilia: items.filter(
-      (item) => item.bjac_transactiontypeFormattedValue == "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
     ),
     soldVehicles: items.filter(
-      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
     ),
     unsoldVehicles: items.filter(
-      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Vehicle" && !item.bjac_isinvoiced
     ),
     soldAutomobilia: items.filter(
-      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
     ),
     unsoldAutomobilia: items.filter(
-      (item) => item.bjac_transactiontypeFormattedValue == "Sale" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Automobilia" && !item.bjac_isinvoiced
     ),
   };
   console.log("Categorized Items:", categorizedItems);
