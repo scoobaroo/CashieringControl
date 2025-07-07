@@ -1,7 +1,10 @@
 import { IInvoiceDetail } from "./IInvoiceDetail";
 
 export interface IInvoice {
-    invoiceId: string;
-    invoiceStatus: string;
-    invoiceDetails?: IInvoiceDetail[];
+    invoiceid: string;
+    bjac_status?: string;
+    extendedamount?: number;
+    priceperunit?: number;
+    statuscode?: string;
+    invoicedetails?: IInvoiceDetail[];
 }

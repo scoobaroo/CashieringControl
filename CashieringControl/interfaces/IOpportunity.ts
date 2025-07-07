@@ -1,4 +1,5 @@
 import { IInvoice } from "./IInvoice";
+import { IVehicle } from "./IVehicle";
 
 export interface IOpportunity {
     _parentaccountid_value: string;
@@ -6,4 +7,6 @@ export interface IOpportunity {
     opportunityid: string;
     name: string;
     invoices?: IInvoice[];
+    _bjac_vehicle_value?: string;
+    vehicle?: IVehicle | null;
 }

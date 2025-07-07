@@ -14,6 +14,52 @@ export default class PowerAppsIntegrationService {
   public constructor(context: ComponentFramework.Context<IInputs>) {
     this.context = context;
   }
+  
+    public fetchOpportunities = async (accountId: string): Promise<IOpportunity[] | null> => {
+    try {
+      const fetchXml = "<fetch version='1.0' output-format='xml-platform' mapping='logical'>"+
+                        "  <entity name='opportunity'>"+
+                        "    <all-attributes />"+
+                        "    <order attribute='name' descending='false' />"+
+                        "    <filter type='and'>"+
+                        "      <condition attribute='bjac_consignmenttype' operator='eq' value='1'/>"+
+                        "      <filter type='or'>"+
+                          `      <condition attribute='parentaccountid' operator='eq' value='${accountId}'/>`+
+                          `      <condition attribute='bjac_responsibleaccount' operator='eq' value='${accountId}'/>`+
+                        "      </filter>"+
+                        "    </filter>"+
+                        "  </entity>"+
+                        "</fetch>";
+      const query = `?fetchXml=${encodeURIComponent(fetchXml)}`;
+      const result = await this.context.webAPI.retrieveMultipleRecords("opportunity", query);
+      return result.entities as IOpportunity[];
+    } catch (error) {
+      console.error("Error fetching vehicle titling addresses:", error);
+      return [];
+    }
+  };
+
+    public fetchInvoices = async (opportunityId: string): Promise<IInvoice[]> => {
+      try {
+        const query = `?$select=invoiceid,statuscode&$expand=invoice_details($select=invoicedetailid,baseamount,_productid_value,extendedamount,priceperunit,quantity)&$filter=_opportunityid_value eq ${opportunityId}`;
+        const result = await this.context.webAPI.retrieveMultipleRecords("invoice", query);
+        return result.entities.map((entity: any) => ({
+          invoiceid: entity.invoiceid,
+          statuscode: entity["statuscode@OData.Community.Display.V1.FormattedValue"],
+          invoicedetails: entity.invoice_details ? entity.invoice_details.map((detail: any) => ({
+            invoicedetailid: detail.invoicedetailid,
+            extendedamount: detail.extendedamount,
+            priceperunit: detail.priceperunit,
+            quantity: detail.quantity,
+            invoiceid: detail.invoiceid,
+          })) : []
+        }));
+      } catch (error) {
+        console.error("Error fetching invoices:", error);
+        return [];
+      }
+    }; 
+
 
   public fetchVehicleTitlingAddresses = async (accountId: string): Promise<IAddress[]> => {
     try {
@@ -48,7 +94,7 @@ export default class PowerAppsIntegrationService {
       return await Promise.all(result.entities.map(async (raw: any, index: number) => {
         const vehicle = await this.fetchVehicle(raw["_bjac_vehicle_value"]);
         const opportunity = await this.fetchOpportunityRelatedToVehicleToFindSeller(raw["_bjac_vehicle_value"]);
-        console.log("Opportunity found:", opportunity);
+        console.log("(Cart Items) Opportunity found:", opportunity);
         const seller = opportunity ? await this.fetchAccountDetails(opportunity._parentaccountid_value) : null;
         console.log("Seller found:", seller);
         const item: ICartItem = {

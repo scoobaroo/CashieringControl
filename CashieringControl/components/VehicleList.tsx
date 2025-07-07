@@ -99,24 +99,25 @@ export const VehicleList: React.FC<VehicleListProps> = ({
 
   const categorizedItems = React.useMemo(() => {
     const boughtVehicles = initialItems.filter(
-      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
+      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Vehicle"
     );
     const boughtAutomobilia = initialItems.filter(
       (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Automobilia" && item.bjac_isinvoiced
     );
     const soldVehicles = initialItems.filter(
-      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
     );
     const unsoldVehicles = initialItems.filter(
-      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Vehicle" && item.bjac_isinvoiced
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Vehicle" && !item.bjac_isinvoiced
     );
     const soldAutomobilia = initialItems.filter(
       (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Automobilia" && item.bjac_isinvoiced
     );
     const unsoldAutomobilia = initialItems.filter(
-      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Automobilia" && item.bjac_isinvoiced
+      (item) => item.bjac_transactiontypeFormattedValue === "Sale" && item.bjac_consigntypeFormattedValue === "Automobilia" && !item.bjac_isinvoiced
     );
 
+    console.log("Categorized Bought Vehicles:", boughtVehicles.map(item => item.bjac_name)); // Debug specific items
     return {
       boughtVehicles,
       boughtAutomobilia,
@@ -128,6 +129,10 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   }, [initialItems]);
 
   const pivotItems = React.useMemo(() => {
+    console.log("Pivot Key:", pivotKey);
+    console.log("Initial Items Count:", initialItems.length);
+    console.log("Pivot Items Count (before filter):", categorizedItems.boughtVehicles.length);
+
     switch (pivotKey) {
       case "boughtVehicles":
         return categorizedItems.boughtVehicles;
@@ -142,13 +147,15 @@ export const VehicleList: React.FC<VehicleListProps> = ({
       case "unsoldAutomobilia":
         return categorizedItems.unsoldAutomobilia;
       case "salesCompleted":
-        return initialItems.filter((item) => item.bjac_isinvoiced);
+        return [];
       default:
         return initialItems;
     }
   }, [pivotKey, categorizedItems, initialItems]);
 
   const searchedItems = React.useMemo(() => {
+    console.log("Searched Items Count:", pivotItems?.length || 0);
+    if (!pivotItems) return [];
     if (!searchQuery) return pivotItems;
     const query = searchQuery.toLowerCase();
     return pivotItems.filter((item) =>
@@ -157,6 +164,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   }, [searchQuery, pivotItems]);
 
   const filteredItems = React.useMemo(() => {
+    console.log("Filtered Items Count:", searchedItems.length);
     let filtered = [...searchedItems];
     if (filterOption === "vehicle") {
       filtered = filtered.filter((item) => item.bjac_consigntypeFormattedValue === "Vehicle");
@@ -167,6 +175,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   }, [filterOption, searchedItems]);
 
   const sortedItems = React.useMemo(() => {
+    console.log("Sorted Items Count:", filteredItems.length);
     const sorted = [...filteredItems];
     if (sortOption === "priceAsc") {
       sorted.sort((a, b) => {
@@ -209,6 +218,12 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   // Compute display totals based on selection
   const displayTotals = selectedVehicles.length > 0 ? calculateTotals(selectedVehicles) : calculateTotals(sortedItems);
 
+  // Log the number of items being rendered
+  React.useEffect(() => {
+    console.log("Rendered Items Count:", sortedItems.length);
+    console.log("Sorted Items:", sortedItems.map(item => item.bjac_name)); // Log item names for debugging
+  }, [sortedItems]);
+
   return (
     <Stack tokens={stackTokens} styles={{ root: { padding: 10 } }}>
       <Stack horizontal horizontalAlign="space-between" tokens={{ childrenGap: 10 }}>
@@ -237,6 +252,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
               if (!props) return null;
               const item = props.item as ICartItem;
               const isSelected = props.selection.isIndexSelected(props.itemIndex);
+              console.log("Rendering Item:", item.bjac_name); // Debug each rendered item
 
               return (
                 <Stack
@@ -289,7 +305,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                               },
                             }}
                           >
-                            {item.bjac_stageFormattedValue}
+                            {item.bjac_stageFormattedValue || "Unknown"}
                           </Text>
                           <Text
                             variant="small"
@@ -311,7 +327,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                               },
                             }}
                           >
-                            {item.bjac_stageFormattedValue}
+                            {item.bjac_stageFormattedValue || "Unknown"}
                           </Text>
                           <Text
                             variant="small"
@@ -321,7 +337,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           </Text>
                         </Stack>
                         <Stack>
-                          <Text variant="medium">{item.bjac_hammerprice}</Text>
+                          <Text variant="medium">{item.bjac_hammerprice ? `$${item.bjac_hammerprice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"}</Text>
                           <Text
                             variant="small"
                             styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -330,7 +346,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                           </Text>
                         </Stack>
                         <Stack>
-                          <Text variant="medium">{item.bjac_taxfee}</Text>
+                          <Text variant="medium">{item.bjac_taxfee ? `$${item.bjac_taxfee.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"}</Text>
                           <Text
                             variant="small"
                             styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -526,7 +542,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                                 },
                               }}
                             >
-                              {vehicle.bjac_stageFormattedValue}
+                              {vehicle.bjac_stageFormattedValue || "Unknown"}
                             </Text>
                             <Text
                               variant="small"
@@ -548,7 +564,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                                 },
                               }}
                             >
-                              {vehicle.bjac_stageFormattedValue}
+                              {vehicle.bjac_stageFormattedValue || "Unknown"}
                             </Text>
                             <Text
                               variant="small"
@@ -558,7 +574,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                             </Text>
                           </Stack>
                           <Stack>
-                            <Text variant="medium">{vehicle.bjac_hammerprice}</Text>
+                            <Text variant="medium">{vehicle.bjac_hammerprice ? `$${vehicle.bjac_hammerprice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"}</Text>
                             <Text
                               variant="small"
                               styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -567,7 +583,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                             </Text>
                           </Stack>
                           <Stack>
-                            <Text variant="medium">{vehicle.bjac_taxfee}</Text>
+                            <Text variant="medium">{vehicle.bjac_taxfee ? `$${vehicle.bjac_taxfee.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "$0.00"}</Text>
                             <Text
                               variant="small"
                               styles={{ root: { color: "#666", marginTop: 4 } }}
@@ -626,7 +642,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                       </Stack>
                       <Stack
                         horizontal
-                        tokens={{ childrenGap: 20 }}
+                        tokens={{ childrenGap: 20}}
                         styles={{ root: { marginBottom: 8 } }}
                       >
                         <Stack.Item grow>
@@ -732,7 +748,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
 export const getConsignmentCounts = (items: ICartItem[]) => {
   const categorizedItems = {
     boughtVehicles: items.filter(
-      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Vehicle"
+      (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_consigntypeFormattedValue === "Vehicle"
     ),
     boughtAutomobilia: items.filter(
       (item) => item.bjac_transactiontypeFormattedValue === "Purchase" && item.bjac_isinvoiced && item.bjac_consigntypeFormattedValue === "Automobilia"

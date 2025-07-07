@@ -7,6 +7,7 @@ import { ICart } from "./interfaces/ICart";
 import { ICartItem } from "./interfaces/ICartItem";
 import { Spinner, SpinnerSize } from "@fluentui/react"; // Import Spinner
 import { IOpportunity } from "./interfaces/IOpportunity";
+import { IInvoice } from "./interfaces/IInvoice";
 
 export class CashieringControl implements ComponentFramework.StandardControl<IInputs, IOutputs> {
   private container: HTMLDivElement;
@@ -62,6 +63,16 @@ export class CashieringControl implements ComponentFramework.StandardControl<IIn
         this.cartItems = cartItems;
       }
       const consignments: IOpportunity[] | null = await this.service?.fetchOpportunities(accountId);
+      consignments?.map(async (consignment) => {
+        if (this.service && consignment.opportunityid) {
+          const invoices: IInvoice[] = await this.service.fetchInvoices(consignment.opportunityid);
+          consignment.invoices = invoices;
+          // Fetch vehicle details for each consignment
+          const vehicle = await this.service.fetchVehicle(consignment._bjac_vehicle_value!);
+          consignment.vehicle = vehicle;
+        }
+      });
+      
       console.log("Consignments:", consignments);
       console.log("Cart:", cart);
     } catch (error) {

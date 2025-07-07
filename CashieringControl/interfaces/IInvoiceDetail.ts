@@ -1,8 +1,7 @@
 export interface IInvoiceDetail{
-    invoiceDetailId: string;
-    invoiceId: string;
-    name: string;
-    extendedAmount: number;
-    pricePerUnit: number;
-    quantity: number;
+    invoicedetailid: string;
+    name?: string;
+    extendedamount?: number;
+    priceperuni?: number;
+    quantity?: number;
 }
